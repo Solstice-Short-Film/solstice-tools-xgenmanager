@@ -30,13 +30,15 @@ import xgenm.XgExternalAPI as xge
 import xgenm.xgGlobal as xgg
 
 import artellapipe
-import artellapipe.tools.xgenmanager
 from artellapipe.core import defines
 from artellapipe.gui import window
 
-logging.config.fileConfig(artellapipe.tools.xgenmanager.get_logging_config(), disable_existing_loggers=False)
+import solstice.tools.xgenmanager
+
+logging.config.fileConfig(solstice.tools.xgenmanager.get_logging_config(), disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
-logger.setLevel(artellapipe.tools.xgenmanager.get_logging_level())
+logger.setLevel(solstice.tools.xgenmanager.get_logging_level())
+
 
 ########################################################################################################################
 # class definition
