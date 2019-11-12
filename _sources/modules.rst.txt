@@ -1,0 +1,7 @@
+solstice
+========
+
+.. toctree::
+   :maxdepth: 4
+
+   solstice

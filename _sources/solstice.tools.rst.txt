@@ -1,0 +1,17 @@
+solstice.tools package
+======================
+
+Subpackages
+-----------
+
+.. toctree::
+
+   solstice.tools.xgenmanager
+
+Module contents
+---------------
+
+.. automodule:: solstice.tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
