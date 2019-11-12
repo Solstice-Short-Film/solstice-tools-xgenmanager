@@ -113,8 +113,9 @@ class ControlXgenUi(QWidget, object):
         """
         asset_name = driver.currentText()
         if asset_name:
-            save_path = os.path.join(artellapipe.AssetsMgr().get_assets_path(), "Characters", asset_name, "__working__",
-                                        "groom", "groom_package.groom")
+            save_path = os.path.join(
+                artellapipe.AssetsMgr().get_assets_path(), "Characters", asset_name, "__working__",
+                "groom", "groom_package.groom")
             setter.setText(save_path)
             return
         setter.setText("")
@@ -187,7 +188,7 @@ class ControlXgenUi(QWidget, object):
         # generate export path
         if export_path:
             self.export_path_folder = export_path
-            if not '.groom' in export_path:
+            if '.groom' not in export_path:
                 self.export_path_folder = export_path + '.groom'
         else:
             working_folder = artella.config.get('server', 'working_folder')
