@@ -1,5 +1,7 @@
 # ===================================================================
 # artellapipe-tools-xgenmanager requirements file
 # ===================================================================
-
+Qt.py
+tpDccLib
 artellapipe
+artellapipe-libs-artella

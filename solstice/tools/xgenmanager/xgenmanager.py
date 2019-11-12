@@ -23,8 +23,6 @@ from functools import partial
 
 from Qt.QtWidgets import *
 
-import maya.cmds as mc
-
 import tpDccLib as tp
 
 import artellapipe
@@ -33,6 +31,7 @@ from artellapipe.libs import artella
 from artellapipe.utils import resource
 
 if tp.is_maya():
+    import maya.cmds as mc
     import xgenm as xg
     import xgenm.XgExternalAPI as xge
     import xgenm.xgGlobal as xgg
