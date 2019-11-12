@@ -25,16 +25,20 @@ from Qt.QtWidgets import *
 
 import maya.cmds as mc
 
-import xgenm as xg
-import xgenm.XgExternalAPI as xge
-import xgenm.xgGlobal as xgg
+import tpDccLib as tp
 
 import artellapipe
 from artellapipe.core import tool
 from artellapipe.libs import artella
 from artellapipe.utils import resource
 
+if tp.is_maya():
+    import xgenm as xg
+    import xgenm.XgExternalAPI as xge
+    import xgenm.xgGlobal as xgg
+
 LOGGER = logging.getLogger()
+
 
 ########################################################################################################################
 # class definition
@@ -95,8 +99,10 @@ class ControlXgenUi(QWidget, object):
         self.ui.groom_file_browser_btn.clicked.connect(self._open_file)
         self.ui.geometry_scalpt_grp_btn.clicked.connect(
             partial(self._load_selection_to_line, self.ui.geometry_scalpt_grp_txf))
-        self.ui.export_character_cbx.currentIndexChanged.connect(partial(self._set_path, self.ui.export_character_cbx, self.ui.path_txf))
-        self.ui.import_character_cbx.currentIndexChanged.connect(partial(self._set_path, self.ui.import_character_cbx, self.ui.groom_package_txf))
+        self.ui.export_character_cbx.currentIndexChanged.connect(
+            partial(self._set_path, self.ui.export_character_cbx, self.ui.path_txf))
+        self.ui.import_character_cbx.currentIndexChanged.connect(
+            partial(self._set_path, self.ui.import_character_cbx, self.ui.groom_package_txf))
 
     ####################################################################################################################
     # UI functions set
@@ -185,7 +191,9 @@ class ControlXgenUi(QWidget, object):
                 self.export_path_folder = export_path + '.groom'
         else:
             working_folder = artella.config.get('server', 'working_folder')
-            self.export_path_folder = os.path.join(self.proje.get_asses_path(), "Characters", self.character, working_folder, "groom", "groom_package.groom")
+            self.export_path_folder = os.path.join(
+                self.proje.get_asses_path(), "Characters", self.character, working_folder,
+                "groom", "groom_package.groom")
 
         # if the folder already exists delete it, and create a new one
         self.delete_artella_folder(self.export_path_folder)
