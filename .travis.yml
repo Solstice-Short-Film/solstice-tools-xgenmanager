@@ -1,15 +1,30 @@
 language: python
+before_install:
+- pip install pycodestyle
 install:
 - pip install -r requirements.txt
 - python setup.py install
 script:
-- pytest
+- find . -name \*.py -exec pycodestyle --max-line-length=120 --ignore=E402 {} +
+- pytest --cov=artellapipe
+- sphinx-apidoc -f -e -o docs/sphinx solstice
+- sphinx-build -M html ./docs/sphinx ./
+after_success:
+- coveralls
+- cd html && touch .nojekyll && cd ../
 deploy:
-  skip_cleanup: true
-  provider: pypi
-  user: tpoveda
-  password:
-    secure: UdCCZe5JR61o0q55568Bw9jBUskpzW8ngbrzf9/40m6FGF1aj7xkavl0RRCDvRb/+lyFl51Fv9cXjURssgnGrqRjL6izC7uvSnMc9KaLpu1UA1s3JTL5KkObLnG2vqLERJUIa1bMI+nIMXG3aVWHCit/126yC476aw8AFabPwBm44VjSaQiRkOau8Eb2FbbSCo6ugKjR7GmTaPuBbWj4Sld9CJwQeriMaytK9NTLE4J4qYXUIf1iEYwHjUUVVFkwnIOvEpDWtzpk211YTZRnfVsbaYNyRGAb0rPwajUyitb8XV06EPPO0qnjzJQe9QmK+dBxrxTTxeHTlnVfx4oQkl9wlHhSYe5jBd0pZJVSg+bvUZiYP5FYAdVhoJKdFDNciVUJ8RWOBp7cx7EJKVYvPEvK9efj4YStRH0H2nDKFhQq12H2q8dSEtwsq+K8Uzm8V++Dz1gYCi3St4/BOZyVXZqcuwoBSJ8s5twVpRhlaBWVGhxFUsEWhlU8t4mhyFyJY4/BXJe+2lJb/LunWoifHO2e27TlbQ+zzX5KkKIaVFVrxJDblpNFu1XRoX8kc7ae/G8v/M4d8RWOLXAgcfCxHPnB8bCsAdRdMGO3V2HkeRqCgrST42QzBNSIN41GY3oBOwnhGwiTVds5EGbLQey15jTeqAuCeerWexmDdGy9icQ=
-  on:
-    branch: master
-    tags: true
+  - provider: pages
+    skip_cleanup: true
+    github_token: "$GITHUB_TOKEN"
+    keep_history: true
+    local_dir: html
+    on:
+      branch: master
+  - provider: pypi
+    skip_cleanup: true
+    user: tpoveda
+    password:
+      secure: tyMgAqrjac4Mrebqj6zl/x1gfIRDnVLTobcyfZBeVHqFaY2J2HJCz7iUFMn1EFfzQl0oAkN8qijj/U2ZkrM9AEdguvwyJIXqogmuiTcpg8CT+shv8B7i2I47xcpZk1BoNJaOjP2PPX9zeV+dVOJl4CJcK33ixyB3OMx8iW1f1qp6BGFbZRzuWJlZ/Klb9xcY/Gu2pQ3VYkZtR98JXYkCA/PX4DkNvrGnkwZ/EF1s6Tm5CC6qRx0yVDX8hgFHoVjaPnZHmHscc70HawMUI/csYG1pjpKjaWBWA0NJDsuzgs1IizPTuwKBvsJDMdcQD74/KczHQr9c8/RaWyF/NV+KgESSYRUwmIRAJO58ZZQ3ZTckRVTqK67x6soyYQ5Ve+YQy6n5Ow/z7f/BMmXXUTWMMdYoCqFQJKbP9sU5UKB70jo0QMemM7SEwV4P2Ah4q7IqfIERTa+rnz0MUdxQ/BIxe+Le5LiejExYOFfQBvLoSeaLQyjdNBpah45rv6qF1Av9EPbVvJUWuPO9dd1QnN6sh+oj+sx/u2cH1Vi+iqcGdwQPQmMs3Z8UBRRchf+EKyDbh6v6dPuRRGK79QmFHfWjraMFPzlVp/zBQ4lV58+L7q2D2Fmm3tq2YBrHkhWqWMCAQpYBL13Q19fojBeUfWyYW2HlPfGtdbAjJdOdO3vsntY=
+    on:
+      branch: master
+      tags: true

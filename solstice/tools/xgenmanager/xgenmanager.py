@@ -18,7 +18,7 @@ import os
 import json
 import stat
 import shutil
-import logging.config
+import logging
 from functools import partial
 
 from Qt.QtWidgets import *
@@ -30,73 +30,73 @@ import xgenm.XgExternalAPI as xge
 import xgenm.xgGlobal as xgg
 
 import artellapipe
-from artellapipe.core import defines
-from artellapipe.gui import window
+from artellapipe.core import tool
+from artellapipe.libs import artella
+from artellapipe.utils import resource
 
-import solstice.tools.xgenmanager
-
-logging.config.fileConfig(solstice.tools.xgenmanager.get_logging_config(), disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
-logger.setLevel(solstice.tools.xgenmanager.get_logging_level())
-
+LOGGER = logging.getLogger()
 
 ########################################################################################################################
 # class definition
 ########################################################################################################################
-class ControlXgenUi(window.ArtellaWindow, object):
-
-    LOGO_NAME = 'xgen_manager'
+class ControlXgenUi(QWidget, object):
 
     ####################################################################################################################
     # class constructor
     ####################################################################################################################
-    def __init__(self, project):
+    def __init__(self, project, parent=None):
 
         self.shaders_dict = dict()
         self.scalps_list = list()
         self.collection_name = None
+        self._project = project
+        super(ControlXgenUi, self).__init__(parent=parent)
 
-        super(ControlXgenUi, self).__init__(
-            project=project,
-            name='xgenmanager',  # Do not change or UI load'll fail and Maya'll crash painfully
-            title='XGen Manager',
-            size=(500, 400),
-            load_ui=True
-        )
+        self.ui()
 
     ####################################################################################################################
     # ui definitions
     ####################################################################################################################
     def ui(self):
-        super(ControlXgenUi, self).ui()
+        self.main_layout = QVBoxLayout()
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+        self.setLayout(self.main_layout)
+
+        self.ui = resource.ResourceManager().gui('xgenmanager')
+        if not self.ui:
+            LOGGER.error('Error while loading XGen Manager UI ...')
+            return
+
+        self.main_layout.addWidget(self.ui)
 
         self._populate_data()
         self._connect_componets_to_actions()
 
     def _populate_data(self):
-        self.qtui.collection_cbx.addItems(self._get_all_collections())
-        self.qtui.renderer_cbx.addItems(["None", "Arnold Renderer"])
-        self.qtui.renderer_cbx.setCurrentIndex(1)
-        self.qtui.renderer_mode_cbx.addItems(["Live", "Batch Render"])
-        self.qtui.renderer_mode_cbx.setCurrentIndex(1)
-        self.qtui.motion_blur_cbx.addItems(["Use Global Settings", "On", "Off"])
-        self.qtui.extra_depth_sbx.setValue(16)
-        self.qtui.extra_samples_sbx.setValue(0)
+        self.ui.collection_cbx.addItems(self._get_all_collections())
+        self.ui.renderer_cbx.addItems(["None", "Arnold Renderer"])
+        self.ui.renderer_cbx.setCurrentIndex(1)
+        self.ui.renderer_mode_cbx.addItems(["Live", "Batch Render"])
+        self.ui.renderer_mode_cbx.setCurrentIndex(1)
+        self.ui.motion_blur_cbx.addItems(["Use Global Settings", "On", "Off"])
+        self.ui.extra_depth_sbx.setValue(16)
+        self.ui.extra_samples_sbx.setValue(0)
 
-        characters_to_set = os.listdir(os.path.join(self.project.get_assets_path(), "Characters"))
+        characters_to_set = os.listdir(os.path.join(artellapipe.AssetsMgr().get_assets_path(), "Characters"))
         characters_to_set.insert(0, "")
-        self.qtui.export_character_cbx.addItems(characters_to_set)
-        self.qtui.import_character_cbx.addItems(characters_to_set)
+        self.ui.export_character_cbx.addItems(characters_to_set)
+        self.ui.import_character_cbx.addItems(characters_to_set)
 
     def _connect_componets_to_actions(self):
-        self.qtui.export_go_btn.clicked.connect(self._do_export)
-        self.qtui.importer_go_btn.clicked.connect(self._do_import)
-        self.qtui.path_browse_btn.clicked.connect(self._save_file)
-        self.qtui.groom_file_browser_btn.clicked.connect(self._open_file)
-        self.qtui.geometry_scalpt_grp_btn.clicked.connect(
-            partial(self._load_selection_to_line, self.qtui.geometry_scalpt_grp_txf))
-        self.qtui.export_character_cbx.currentIndexChanged.connect(partial(self._set_path, self.qtui.export_character_cbx, self.qtui.path_txf))
-        self.qtui.import_character_cbx.currentIndexChanged.connect(partial(self._set_path, self.qtui.import_character_cbx, self.qtui.groom_package_txf))
+        self.ui.export_go_btn.clicked.connect(self._do_export)
+        self.ui.importer_go_btn.clicked.connect(self._do_import)
+        self.ui.path_browse_btn.clicked.connect(self._save_file)
+        self.ui.groom_file_browser_btn.clicked.connect(self._open_file)
+        self.ui.geometry_scalpt_grp_btn.clicked.connect(
+            partial(self._load_selection_to_line, self.ui.geometry_scalpt_grp_txf))
+        self.ui.export_character_cbx.currentIndexChanged.connect(partial(self._set_path, self.ui.export_character_cbx, self.ui.path_txf))
+        self.ui.import_character_cbx.currentIndexChanged.connect(partial(self._set_path, self.ui.import_character_cbx, self.ui.groom_package_txf))
 
     ####################################################################################################################
     # UI functions set
@@ -107,7 +107,7 @@ class ControlXgenUi(window.ArtellaWindow, object):
         """
         asset_name = driver.currentText()
         if asset_name:
-            save_path = os.path.join(self.project.get_assets_path(), "Characters", asset_name, "__working__",
+            save_path = os.path.join(artellapipe.AssetsMgr().get_assets_path(), "Characters", asset_name, "__working__",
                                         "groom", "groom_package.groom")
             setter.setText(save_path)
             return
@@ -143,7 +143,7 @@ class ControlXgenUi(window.ArtellaWindow, object):
         Open file dialog, and sets the path to the QTexField
         """
         file_path, _ext = QFileDialog.getOpenFileName(self, dir=os.environ['HOME'], filter='Folder(.groom)')
-        self.qtui.groom_package_txf.setText(str(file_path))
+        self.ui.groom_package_txf.setText(str(file_path))
 
     def _save_file(self):
         """
@@ -151,7 +151,7 @@ class ControlXgenUi(window.ArtellaWindow, object):
         :return:
         """
         file_path, _ext = QFileDialog.getSaveFileName(self, dir=os.environ['HOME'], filter='Folder(.groom)')
-        self.qtui.path_txf.setText(str(file_path))
+        self.ui.path_txf.setText(str(file_path))
 
     ####################################################################################################################
     # class core functions
@@ -162,13 +162,13 @@ class ControlXgenUi(window.ArtellaWindow, object):
         """
 
         # Get data from ui
-        self.collection_name = self.qtui.collection_cbx.currentText()
+        self.collection_name = self.ui.collection_cbx.currentText()
         self.shaders_dict = self._get_shaders()
         self.scalps_list = self._get_scalps()
         ptx_folder = self._get_root_folder()
-        export_path = self.qtui.path_txf.text()
-        self.character = self.qtui.export_character_cbx.currentText()
-        comment = self.qtui.comment_pte.toPlainText()
+        export_path = self.ui.path_txf.text()
+        self.character = self.ui.export_character_cbx.currentText()
+        comment = self.ui.comment_pte.toPlainText()
 
         # analise if there is an export folder
         if not export_path:
@@ -184,7 +184,8 @@ class ControlXgenUi(window.ArtellaWindow, object):
             if not '.groom' in export_path:
                 self.export_path_folder = export_path + '.groom'
         else:
-            self.export_path_folder = os.path.join(self.proje.get_asses_path(), "Characters", self.character, defines.ARTELLA_WORKING_FOLDER, "groom", "groom_package.groom")
+            working_folder = artella.config.get('server', 'working_folder')
+            self.export_path_folder = os.path.join(self.proje.get_asses_path(), "Characters", self.character, working_folder, "groom", "groom_package.groom")
 
         # if the folder already exists delete it, and create a new one
         self.delete_artella_folder(self.export_path_folder)
@@ -194,53 +195,53 @@ class ControlXgenUi(window.ArtellaWindow, object):
         if '${PROJECT}' in ptx_folder:
             project_path = str(mc.workspace(fullName=True, q=True))
             ptx_folder = os.path.join(project_path, ptx_folder.replace('${PROJECT}', ''))
-        self.project.logger.debug("XGEN || All data parsed")
-        self.qtui.progress_lbl.setText("Exporting Files (PTX)")
+        LOGGER.debug("XGEN || All data parsed")
+        self.ui.progress_lbl.setText("Exporting Files (PTX)")
         # copy the ptx files
         shutil.copytree(ptx_folder, os.path.join(self.export_path_folder, self.collection_name))
-        self.project.logger.debug("XGEN || PTEX files exported")
+        LOGGER.debug("XGEN || PTEX files exported")
 
         # export xgen file
         xg.exportPalette(palette=str(self.collection_name),
                          fileName=str("{}/{}.xgen".format(self.export_path_folder, self.collection_name)))
-        self.qtui.progress_lbl.setText("Exporting Files (.XGEN)")
-        self.project.logger.debug("XGEN || Collection file exported")
+        self.ui.progress_lbl.setText("Exporting Files (.XGEN)")
+        LOGGER.debug("XGEN || Collection file exported")
 
         # export sculpts
         mc.select(self.scalps_list, replace=True)
         mc.file(rename=os.path.join(self.export_path_folder, 'scalps.ma'))
         mc.file(es=True, type='mayaAscii')
         mc.select(cl=True)
-        self.qtui.progress_lbl.setText("Exporting Scalps (.MA)")
-        self.project.logger.debug("XGEN || Sculpts Exported")
+        self.ui.progress_lbl.setText("Exporting Scalps (.MA)")
+        LOGGER.debug("XGEN || Sculpts Exported")
 
         # export material
         exporter = shaderexporter.ShaderExporter(project=self._project, shaders=self.shaders_dict.values(), parent=self)
         exporter.export_shaders(publish=comment)
 
-        self.qtui.progress_lbl.setText("Exporting Material (.sshader)")
-        self.project.logger.debug("XGEN || Material Exported")
+        self.ui.progress_lbl.setText("Exporting Material (.sshader)")
+        LOGGER.debug("XGEN || Material Exported")
 
         # export mapping
         with open(os.path.join(self.export_path_folder, 'shader.json'), 'w') as fp:
             json.dump(self.shaders_dict, fp)
-        self.qtui.progress_lbl.setText("Exporting Mapping (.JSON)")
-        self.project.logger.debug("XGEN || Mapping Exported")
+        self.ui.progress_lbl.setText("Exporting Mapping (.JSON)")
+        LOGGER.debug("XGEN || Mapping Exported")
 
         # add file to artella
         if comment:
             self._add_file_to_artella(file_path_global=self.export_path_folder, comment=comment)
-            self.project.logger.debug("XGEN || Files added to artella")
+            LOGGER.debug("XGEN || Files added to artella")
         else:
-            self.project.logger.warning("XGEN || Files are not been loaded to Artella. Do it manually")
+            LOGGER.warning("XGEN || Files are not been loaded to Artella. Do it manually")
 
     def _do_import(self):
         """
         Imports the groom into the scene
         """
         # todo: query if is it the last version
-        import_folder = self.qtui.groom_package_txf.text()
-        self.character = self.qtui.import_character_cbx.currentText()
+        import_folder = self.ui.groom_package_txf.text()
+        self.character = self.ui.import_character_cbx.currentText()
 
         if not import_folder:
             raise ValueError("Import path must be specified")
@@ -268,7 +269,7 @@ class ControlXgenUi(window.ArtellaWindow, object):
         try:
             xg.importPalette(fileName=str(xgen_file), deltas=[], nameSpace=str(self.character))
         except Exception:
-            logger.warning('Not found maps folder')
+            LOGGER.warning('Not found maps folder')
         # set path to xgen
         xg.setAttr('xgDataPath', str(map_folder), xg.palettes()[0])
 
@@ -286,7 +287,7 @@ class ControlXgenUi(window.ArtellaWindow, object):
 
         # place anim
         # todo: if there is any scalp group, create a blendshape
-        # scalp_grp = self.qtui.geometry_scalpt_grp_txf.text()
+        # scalp_grp = self.ui.geometry_scalpt_grp_txf.text()
         # if scalp_grp:
         #     mc.blendShape(scalp_grp, )
 
@@ -298,8 +299,8 @@ class ControlXgenUi(window.ArtellaWindow, object):
         return xg.getAttr('xgDataPath', str(self.collection_name))
 
     def delete_artella_folder(self, p):
-        self.qtui.progress_bar.setValue(0)
-        self.qtui.progress_lbl.setText("Locking Files")
+        self.ui.progress_bar.setValue(0)
+        self.ui.progress_lbl.setText("Locking Files")
         i = 0
         for root, dirs, files in os.walk(p):
             for file in files:
@@ -307,16 +308,16 @@ class ControlXgenUi(window.ArtellaWindow, object):
         if i == 0:
             return
         j = 0
-        self.qtui.progress_bar.setMinimum(0)
-        self.qtui.progress_bar.setMaximum(i - 1)
+        self.ui.progress_bar.setMinimum(0)
+        self.ui.progress_bar.setMaximum(i - 1)
         for root, dirs, files in os.walk(p):
             for file in files:
-                self.project.lock_file(file_path=os.path.join(root, file))
-                self.qtui.progress_bar.setValue((j / float(i)) * 100)
-                self.project.logger.debug("XGEN || {} file locked".format(file))
+                artellapipe.FilesMgr().lock_file(file_path=os.path.join(root, file))
+                self.ui.progress_bar.setValue((j / float(i)) * 100)
+                LOGGER.debug("XGEN || {} file locked".format(file))
                 j += 1
         shutil.rmtree(p, onerror=self._on_rm_error)
-        self.project.logger.debug("XGEN || {} path deleted".format(p))
+        LOGGER.debug("XGEN || {} path deleted".format(p))
 
     def _add_file_to_artella(self, file_path_global, comment):
         """
@@ -324,20 +325,20 @@ class ControlXgenUi(window.ArtellaWindow, object):
         :param file_path_global: String with the base path to ad
         :param comment: String with the comment to add
         """
-        self.qtui.progress_bar.setValue(0)
-        self.qtui.progress_lbl.setText("Uploading Files")
+        self.ui.progress_bar.setValue(0)
+        self.ui.progress_lbl.setText("Uploading Files")
         i = 0
         for root, dirs, files in os.walk(file_path_global):
             for file in files:
                 i += 1
         j = 0
-        self.qtui.progress_bar.setMinimum(0)
-        self.qtui.progress_bar.setMaximum(i - 1)
+        self.ui.progress_bar.setMinimum(0)
+        self.ui.progress_bar.setMaximum(i - 1)
         for root, dirs, files in os.walk(file_path_global):
             for file in files:
-                self.project.upload_working_version(os.path.join(root, file), comment=comment, force=True)
-                self.qtui.progress_bar.setValue((j / float(i)) * 100)
-                self.project.logger.debug("XGEN || {} file added".format(file))
+                artellapipe.FilesMgr().upload_working_version(os.path.join(root, file), comment=comment, force=True)
+                self.ui.progress_bar.setValue((j / float(i)) * 100)
+                LOGGER.debug("XGEN || {} file added".format(file))
                 j += 1
 
     def _get_shaders(self):
@@ -375,12 +376,12 @@ class ControlXgenUi(window.ArtellaWindow, object):
         os.unlink(path)
 
 
-def run():
-    """
-    Runs the Xgen manager GUI
-    :return: QWindow object
-    """
-    win = ControlXgenUi(project=artellapipe.solstice)
-    win.show()
+class XGenManager(tool.Tool, object):
+    def __init__(self, project, config):
+        super(XGenManager, self).__init__(project=project, config=config)
 
-    return win
+    def ui(self):
+        super(XGenManager, self).ui()
+
+        self._xgen_ui = ControlXgenUi(project=self._project)
+        self.main_layout.addWidget(self._xgen_ui)
