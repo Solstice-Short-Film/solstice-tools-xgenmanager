@@ -26,7 +26,6 @@ from Qt.QtWidgets import *
 import tpDccLib as tp
 
 import artellapipe
-from artellapipe.core import tool
 from artellapipe.libs import artella
 from artellapipe.utils import resource
 
@@ -384,7 +383,7 @@ class ControlXgenUi(QWidget, object):
         os.unlink(path)
 
 
-class XGenManager(tool.Tool, object):
+class XGenManager(artellapipe.Tool, object):
     def __init__(self, project, config):
         super(XGenManager, self).__init__(project=project, config=config)
 
