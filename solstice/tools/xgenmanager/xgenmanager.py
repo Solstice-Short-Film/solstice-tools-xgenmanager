@@ -7,8 +7,6 @@ Tool that allows to import/export XGen data
 
 from __future__ import print_function, division, absolute_import
 
-# from artellapipe.shadermanager.widgets import shaderexporter
-
 __author__ = "Enrique Velasco"
 __license__ = "MIT"
 __maintainer__ = "Enrique Velasco"
@@ -223,8 +221,7 @@ class ControlXgenUi(QWidget, object):
         LOGGER.debug("XGEN || Sculpts Exported")
 
         # export material
-        exporter = shaderexporter.ShaderExporter(project=self._project, shaders=self.shaders_dict.values(), parent=self)
-        exporter.export_shaders(publish=comment)
+        artellapipe.ShadersMgr().export_shaders(shader_names=self.shaders_dict.values(), publish=True, comment=comment)
 
         self.ui.progress_lbl.setText("Exporting Material (.sshader)")
         LOGGER.debug("XGEN || Material Exported")
