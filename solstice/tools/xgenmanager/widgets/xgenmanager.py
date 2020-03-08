@@ -21,16 +21,14 @@ from functools import partial
 
 from Qt.QtWidgets import *
 
-import tpDccLib as tp
+import tpDcc as tp
 
 import artellapipe
 from artellapipe.libs import artella
-from artellapipe.utils import resource
 
 if tp.is_maya():
     import maya.cmds as mc
     import xgenm as xg
-    import xgenm.XgExternalAPI as xge
     import xgenm.xgGlobal as xgg
 
 LOGGER = logging.getLogger()
@@ -39,31 +37,27 @@ LOGGER = logging.getLogger()
 ########################################################################################################################
 # class definition
 ########################################################################################################################
-class ControlXgenUi(QWidget, object):
+class ControlXgenUi(artellapipe.ToolWidget, object):
 
     ####################################################################################################################
     # class constructor
     ####################################################################################################################
-    def __init__(self, project, parent=None):
+    def __init__(self, project, config, settings, parent):
 
         self.shaders_dict = dict()
         self.scalps_list = list()
         self.collection_name = None
         self._project = project
-        super(ControlXgenUi, self).__init__(parent=parent)
 
-        self.ui()
+        super(ControlXgenUi, self).__init__(project=project, config=config, settings=settings, parent=parent)
 
     ####################################################################################################################
     # ui definitions
     ####################################################################################################################
     def ui(self):
-        self.main_layout = QVBoxLayout()
-        self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.setSpacing(0)
-        self.setLayout(self.main_layout)
+        super(ControlXgenUi, self).ui()
 
-        self.ui = resource.ResourceManager().gui('xgenmanager')
+        self.ui = tp.ResourcesMgr().gui('xgenmanager')
         if not self.ui:
             LOGGER.error('Error while loading XGen Manager UI ...')
             return
@@ -378,14 +372,3 @@ class ControlXgenUi(QWidget, object):
         # let's just assume that it's read-only and unlink it.
         os.chmod(path, stat.S_IWRITE)
         os.unlink(path)
-
-
-class XGenManager(artellapipe.Tool, object):
-    def __init__(self, project, config):
-        super(XGenManager, self).__init__(project=project, config=config)
-
-    def ui(self):
-        super(XGenManager, self).ui()
-
-        self._xgen_ui = ControlXgenUi(project=self._project)
-        self.main_layout.addWidget(self._xgen_ui)
