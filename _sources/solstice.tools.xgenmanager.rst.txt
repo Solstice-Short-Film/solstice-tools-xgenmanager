@@ -1,12 +1,13 @@
 solstice.tools.xgenmanager package
 ==================================
 
-Submodules
-----------
+Subpackages
+-----------
 
 .. toctree::
 
-   solstice.tools.xgenmanager.xgenmanager
+   solstice.tools.xgenmanager.core
+   solstice.tools.xgenmanager.widgets
 
 Module contents
 ---------------

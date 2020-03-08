@@ -1,7 +1,0 @@
-solstice.tools.xgenmanager.xgenmanager module
-=============================================
-
-.. automodule:: solstice.tools.xgenmanager.xgenmanager
-   :members:
-   :undoc-members:
-   :show-inheritance:

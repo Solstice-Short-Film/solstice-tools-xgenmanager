@@ -1,0 +1,7 @@
+solstice.tools.xgenmanager.widgets.xgenmanager module
+=====================================================
+
+.. automodule:: solstice.tools.xgenmanager.widgets.xgenmanager
+   :members:
+   :undoc-members:
+   :show-inheritance:
