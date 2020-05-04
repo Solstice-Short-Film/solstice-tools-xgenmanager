@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    solstice.tools.xgenmanager.core
    solstice.tools.xgenmanager.widgets
