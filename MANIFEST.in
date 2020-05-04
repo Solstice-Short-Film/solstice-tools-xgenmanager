@@ -1,1 +1,3 @@
 include solstice/tools/xgenmanager/resources/images/*.*
+include versioneer.py
+include solstice/tools/xgenmanager/_version.py
