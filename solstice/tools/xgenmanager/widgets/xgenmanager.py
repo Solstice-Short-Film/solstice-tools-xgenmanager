@@ -181,7 +181,7 @@ class ControlXgenUi(artellapipe.ToolWidget, object):
             if '.groom' not in export_path:
                 self.export_path_folder = export_path + '.groom'
         else:
-            working_folder = artella.config.get('server', 'working_folder')
+            working_folder = self._project.get_working_folder()
             self.export_path_folder = os.path.join(
                 self.proje.get_asses_path(), "Characters", self.character, working_folder,
                 "groom", "groom_package.groom")
