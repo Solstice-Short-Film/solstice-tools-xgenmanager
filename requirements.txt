@@ -4,6 +4,6 @@
 Qt.py
 coveralls==1.8.2; python_version>='3.6'
 coveralls==1.9.2; python_version<'3.6'
-tpDccLib
+tpDcc-core
 artellapipe
 artellapipe-libs-artella
